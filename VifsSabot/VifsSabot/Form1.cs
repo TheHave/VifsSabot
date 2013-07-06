@@ -103,17 +103,17 @@ namespace WindowsFormsApplication1
             }
         }
 
-        private void bw_DoWork(object sender, DoWorkEventArgs e)
-        {
-            char sperator = ' ';
-            while (botOnline)
-            {
-                newMsg = reader.ReadLine();
+        private void bw_DoWork(object sender, DoWorkEventArgs e) //fucks up here
+        {                                                        //trying to have it run it the background so it wouldn't fuck the controls up
+            char sperator = ' ';                                 //This infinte loop thing was dumb what was I thinking, anyway every iteration it
+            while (botOnline)                                    //should exit out to report progress and update the chat log. Maybe replace this 
+            {                                                    //this with a thing that every X seconds reads all the lines in the buffer processes 
+                newMsg = reader.ReadLine();                      //them and prints them? Idk fuck around with something. This is a terrible method holy shit.
                 bw.ReportProgress(1, newMsg);
                 words = newMsg.Split(sperator);
                 if (words[0] == "PING")
                 {
-                    DataSend("PONG", words[1]);
+                    DataSend("PONG", words[1]); //responding to pings to twitch doesn't fuck you out. Needs to happen somewhere
                 }
             }
         }
