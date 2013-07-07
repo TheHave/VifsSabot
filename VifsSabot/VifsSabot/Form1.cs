@@ -11,6 +11,7 @@ using System.Net.Sockets;
 using System.IO;
 using System.Collections;
 using System.Text.RegularExpressions;
+using System.Threading;
 
 
 namespace WindowsFormsApplication1
@@ -24,10 +25,13 @@ namespace WindowsFormsApplication1
         NetworkStream ns = null;
         StreamReader reader = null;
         StreamWriter writer = null;
-        bool botOnline = true;
+        bool botOnline = false;
         public string[] words;
         private BackgroundWorker bw = new BackgroundWorker();
         Regex nameExtractor =new Regex("!*:");
+        string LineFromReader = "";
+        bool IsLineRead = true;
+        Thread ReadStreamThread;
 
         public Form1()
         {
@@ -47,6 +51,20 @@ namespace WindowsFormsApplication1
             VifsbotInit();
         }
 
+        //ran on a different thread, reads in from the stream and waits till the line is posted
+        private void ReadIn()
+        {
+            while (true)
+            {
+                    if (IsLineRead && reader != null)
+                    {
+                        LineFromReader = reader.ReadLine();
+                        IsLineRead = false;
+                    }
+                Thread.Sleep(UpdateText.Interval);
+            }
+        }
+
         public void VifsbotInit() 
         {
             try
@@ -62,11 +80,14 @@ namespace WindowsFormsApplication1
                 ns = IRCconnection.GetStream();
                 reader = new StreamReader(ns);
                 writer = new StreamWriter(ns);
+                botOnline = true;
                 DataSend("PASS", pass);
                 DataSend("NICK", nick);
                 DataSend("USER", nick);
                 DataSend("JOIN", channel);
                 bw.RunWorkerAsync();
+                ReadStreamThread = new Thread(new ThreadStart(this.ReadIn));
+                ReadStreamThread.Start();
             }
             catch
             {
@@ -103,20 +124,20 @@ namespace WindowsFormsApplication1
             }
         }
 
-        private void bw_DoWork(object sender, DoWorkEventArgs e) //fucks up here
-        {                                                        //trying to have it run it the background so it wouldn't fuck the controls up
-            char sperator = ' ';                                 //This infinte loop thing was dumb what was I thinking, anyway every iteration it
-            while (botOnline)                                    //should exit out to report progress and update the chat log. Maybe replace this 
-            {                                                    //this with a thing that every X seconds reads all the lines in the buffer processes 
-                newMsg = reader.ReadLine();                      //them and prints them? Idk fuck around with something. This is a terrible method holy shit.
-                bw.ReportProgress(1, newMsg);
-                words = newMsg.Split(sperator);
-                if (words[0] == "PING")
-                {
-                    DataSend("PONG", words[1]); //responding to pings to twitch doesn't fuck you out. Needs to happen somewhere
-                }
-            }
-        }
+        //private void bw_DoWork(object sender, DoWorkEventArgs e) //fucks up here
+        //{                                                        //trying to have it run it the background so it wouldn't fuck the controls up
+        //    char sperator = ' ';                                 //This infinte loop thing was dumb what was I thinking, anyway every iteration it
+        //    while (botOnline)                                    //should exit out to report progress and update the chat log. Maybe replace this 
+        //    {                                                    //this with a thing that every X seconds reads all the lines in the buffer processes 
+        //        //newMsg = reader.ReadLine();                      //them and prints them? Idk fuck around with something. This is a terrible method holy shit.
+        //        //bw.ReportProgress(1, newMsg);
+        //        words = newMsg.Split(sperator);
+        //        if (words[0] == "PING")
+        //        {
+        //            DataSend("PONG", words[1]); //responding to pings to twitch doesn't fuck you out. Needs to happen somewhere
+        //        }
+        //    }
+        //}
 
         private void but_say_Click(object sender, EventArgs e)
         {
@@ -125,7 +146,25 @@ namespace WindowsFormsApplication1
             writer.Flush();
             chat_area.AppendText("<TestSabot> "+botMsg + "\r\n");
             text_msg.Clear();
+
         }
+
+
+        //private void bw_DoWork(object sender, DoWorkEventArgs e) //fucks up here
+        //{                                                        //trying to have it run it the background so it wouldn't fuck the controls up
+        //    char sperator = ' ';                                 //This infinte loop thing was dumb what was I thinking, anyway every iteration it
+        //    while (botOnline)                                    //should exit out to report progress and update the chat log. Maybe replace this 
+        //    {                                                    //this with a thing that every X seconds reads all the lines in the buffer processes 
+        //        newMsg = reader.ReadLine();                      //them and prints them? Idk fuck around with something. This is a terrible method holy shit.
+        //        bw.ReportProgress(1, newMsg);
+        //        words = newMsg.Split(sperator);
+        //        if (words[0] == "PING")
+        //        {
+        //            DataSend("PONG", words[1]); //responding to pings to twitch doesn't fuck you out. Needs to happen somewhere
+        //        }
+        //    }
+        //}
+
 
         private void but_part_Click(object sender, EventArgs e)
         {
@@ -138,7 +177,24 @@ namespace WindowsFormsApplication1
         {
             chat_area.AppendText(e.UserState.ToString());
         }
-        
+
+
+        //timer that loops to post read in lines from the stream
+        private void UpdateText_Tick(object sender, EventArgs e)
+        {
+            if (botOnline)
+            {
+                    if (!IsLineRead)
+                    {
+                        chat_area.AppendText(LineFromReader + "\r\n");
+                        IsLineRead = true;
+                    }
+            }
+        }
+
+
+
+
     }
 }
     
