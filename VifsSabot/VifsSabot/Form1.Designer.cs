@@ -45,6 +45,7 @@
             this.label5 = new System.Windows.Forms.Label();
             this.text_port = new System.Windows.Forms.TextBox();
             this.UpdateText = new System.Windows.Forms.Timer(this.components);
+            this.VotingTime = new System.Windows.Forms.Timer(this.components);
             this.SuspendLayout();
             // 
             // label1
@@ -231,6 +232,7 @@
         private System.Windows.Forms.TextBox text_port;
         private System.Windows.Forms.RichTextBox chat_area;
         private System.Windows.Forms.Timer UpdateText;
+        public System.Windows.Forms.Timer VotingTime;
     }
 }
 

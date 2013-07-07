@@ -20,6 +20,8 @@ namespace WindowsFormsApplication1
     {
         public string server, channel, nick, pass;
         public string newMsg, botMsg;
+        string replyingUser, formatedMessage;
+        char[] chatSeperator={' '};
         public int port;
         TcpClient IRCconnection = null;   
         NetworkStream ns = null;
@@ -28,11 +30,15 @@ namespace WindowsFormsApplication1
         bool botOnline = false;
         public string[] words;
         private BackgroundWorker bw = new BackgroundWorker();
-        Regex nameExtractor =new Regex("!*:");
+       // Regex nameExtractor =new Regex("!*:");
         string LineFromReader = "";
         bool IsLineRead = true;
         Thread ReadStreamThread;
         CrazyChat Replies;
+        string votingOptions="VOTE:";
+        int voteSize, voteTickCount=0;
+        bool activeVote = false;
+        int[] votecount;
 
         public Form1()
         {
@@ -40,6 +46,7 @@ namespace WindowsFormsApplication1
             Replies = new CrazyChat();
             bw.WorkerReportsProgress = true;
             bw.WorkerSupportsCancellation = true;
+            VotingTime.Interval = 10000;
         }
 
         private void but_join_Click(object sender, EventArgs e)
@@ -175,21 +182,104 @@ namespace WindowsFormsApplication1
             {
                     if (!IsLineRead)
                     {
-                        chat_area.AppendText(LineFromReader + "\r\n");
-                        IsLineRead = true;
-                        if(LineFromReader.ToLower().Contains(nick.ToLower())){
-                            var reply = Replies.giveReply();
-                            DataSend("PRIVMSG ", channel + ' ' + ":" + reply);
-                            writer.Flush();
-                            chat_area.AppendText("<TestSabot> " + reply + "\r\n");
+
+                        if (LineFromReader.Contains("PRIVMSG"))
+                        {
+                            WordSplitter();
                         }
+                        else if (LineFromReader.Contains("PING"))
+                        {
+                            PingHandler();
+                        }
+                        else
+                        {
+                            chat_area.AppendText(LineFromReader + "\r\n");
+                        }
+                        IsLineRead = true;
                     }
             }
         }
 
+        private void WordSplitter()
+        {    
+            words = LineFromReader.Split(chatSeperator, 4);
+            replyingUser = words[0].Remove(words[0].IndexOf('!')).TrimStart(':');
+            formatedMessage = words[3].TrimStart(':');
+            chat_area.AppendText("<" + replyingUser + "> " + formatedMessage + "\r\n");
+            KeywordDetector();
+        }
 
+        private void KeywordDetector()
+        {
+            if (formatedMessage.ToLower().Contains(nick.ToLower())&&!activeVote)
+            {
+                var reply = Replies.giveReply();
+                DataSend("PRIVMSG ", channel + ' ' + ":" + reply);
+                writer.Flush();
+                chat_area.AppendText("<TestSabot> " + reply + "\r\n");
+            }
+            if ((replyingUser.ToLower() == "vifs" || replyingUser.ToLower() == "theheavenator") && formatedMessage.ToLower().StartsWith("vs"))
+            {
+                Voting();
+            }
+            if (activeVote)
+            {
+                for (int c=1; c<=voteSize; c++)
+                {
+                    if (formatedMessage.StartsWith(c.ToString()))
+                    {
+                        votecount[c-1]++;
+                    }
+                }
+            }
+        }
 
+        private void PingHandler()
+        {
+            words = newMsg.Split(chatSeperator);
+            if (words[0] == "PING")
+            {
+                DataSend("PONG", words[1]); 
+            }
+        }
 
+        private void Voting()
+        {
+            string[] tempVoteSetup = formatedMessage.Split(',');
+            if (tempVoteSetup.Length == 1)
+            {
+                DataSend("PRIVMSG ", channel + ' ' + ":VOTE: 1, 2, 3, or 4");
+                voteSize = 4;
+                chat_area.AppendText("VOTING START");
+            }
+            else
+            {
+                for (int c = 1; c <= tempVoteSetup.Length - 1; c++)
+                {
+                    votingOptions += (" " + c + " for " + tempVoteSetup[c] + ",");
+                }
+                votingOptions = votingOptions.TrimEnd(',');
+                DataSend("PRIVMSG ", channel + " :" + votingOptions);
+                chat_area.AppendText("VOTING START");
+            }
+
+            VotingTime.Start();
+            bool activeVote = true;
+
+        }
+
+        private void VotingTime_Tick(object sender, EventArgs e)
+        {
+            voteTickCount++;
+            if (voteTickCount == 2) 
+            {
+                DataSend("PRIVMSG ", channel + " :10 SECONDS LEFT TO VOTE");
+            }
+            else if (voteTickCount==3)
+            {
+               //end voting stuff here. Should be straight forward.
+            }
+        }
     }
 }
     
