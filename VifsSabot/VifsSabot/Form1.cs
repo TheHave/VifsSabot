@@ -38,7 +38,8 @@ namespace WindowsFormsApplication1
         string votingOptions="VOTE:";
         int voteSize, voteTickCount=0;
         bool activeVote = false;
-        int[] votecount;
+        //int[] votecount;
+        VotingSystem Votes;
 
         public Form1()
         {
@@ -46,7 +47,8 @@ namespace WindowsFormsApplication1
             Replies = new CrazyChat();
             bw.WorkerReportsProgress = true;
             bw.WorkerSupportsCancellation = true;
-            VotingTime.Interval = 10000;
+            //can set in the Design for the timer in properties
+            //VotingTime.Interval = 10000;
         }
 
         private void but_join_Click(object sender, EventArgs e)
@@ -57,6 +59,7 @@ namespace WindowsFormsApplication1
             nick = text_user.Text.ToString();
             pass = text_pass.Text.ToString();
             channel = text_chan.Text.ToString();
+            Votes = new VotingSystem();
             VifsbotInit();
         }
 
@@ -213,7 +216,7 @@ namespace WindowsFormsApplication1
         {
             if (formatedMessage.ToLower().Contains(nick.ToLower())&&!activeVote)
             {
-                var reply = Replies.giveReply();
+                var reply = Replies.giveReply(replyingUser);
                 DataSend("PRIVMSG ", channel + ' ' + ":" + reply);
                 writer.Flush();
                 chat_area.AppendText("<TestSabot> " + reply + "\r\n");
@@ -222,13 +225,18 @@ namespace WindowsFormsApplication1
             {
                 Voting();
             }
+            if ((replyingUser.ToLower() == "vifs" || replyingUser.ToLower() == "theheavenator") && formatedMessage.ToLower().StartsWith("end vote"))
+            {
+                activeVote = false;
+            }
             if (activeVote)
             {
                 for (int c=1; c<=voteSize; c++)
                 {
                     if (formatedMessage.StartsWith(c.ToString()))
                     {
-                        votecount[c-1]++;
+                        //votecount[c-1]++;
+                        Votes.AddVote(c - 1);
                     }
                 }
             }
@@ -245,6 +253,7 @@ namespace WindowsFormsApplication1
 
         private void Voting()
         {
+            Votes.CreateNew();
             string[] tempVoteSetup = formatedMessage.Split(',');
             if (tempVoteSetup.Length == 1)
             {
@@ -257,6 +266,7 @@ namespace WindowsFormsApplication1
                 for (int c = 1; c <= tempVoteSetup.Length - 1; c++)
                 {
                     votingOptions += (" " + c + " for " + tempVoteSetup[c] + ",");
+                    Votes.AddVote(c, tempVoteSetup[c]);
                 }
                 votingOptions = votingOptions.TrimEnd(',');
                 DataSend("PRIVMSG ", channel + " :" + votingOptions);
@@ -264,7 +274,7 @@ namespace WindowsFormsApplication1
             }
 
             VotingTime.Start();
-            bool activeVote = true;
+            activeVote = true;
 
         }
 
@@ -273,12 +283,20 @@ namespace WindowsFormsApplication1
             voteTickCount++;
             if (voteTickCount == 2) 
             {
-                DataSend("PRIVMSG ", channel + " :10 SECONDS LEFT TO VOTE");
+                //DataSend("PRIVMSG ", channel + " :10 SECONDS LEFT TO VOTE");
+                SendMessage(" :10 SECONDS LEFT TO VOTE");
             }
-            else if (voteTickCount==3)
+            else if (voteTickCount==3 || activeVote == false)
             {
-               //end voting stuff here. Should be straight forward.
+                SendMessage(Votes.ReturnVotes());
+                VotingTime.Stop();
+                activeVote = false;
             }
+        }
+
+        private void SendMessage(string message)
+        {
+            DataSend("PRIVMSG ", channel + message);
         }
     }
 }

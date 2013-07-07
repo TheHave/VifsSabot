@@ -187,6 +187,10 @@
             this.UpdateText.Enabled = true;
             this.UpdateText.Tick += new System.EventHandler(this.UpdateText_Tick);
             // 
+            // VotingTime
+            // 
+            this.VotingTime.Interval = 10000;
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);

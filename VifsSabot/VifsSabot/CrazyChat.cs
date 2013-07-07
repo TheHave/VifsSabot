@@ -26,10 +26,10 @@ namespace WindowsFormsApplication1
             }
         }
 
-        public string giveReply()
+        public string giveReply(string username)
         {
             int r = rnd.Next(Replies.Count);
-            return Replies[r];
+            return Replies[r].Replace("$z",username);
 
         }
     }
