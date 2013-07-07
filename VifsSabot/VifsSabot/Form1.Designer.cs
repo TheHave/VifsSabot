@@ -28,6 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
+            this.components = new System.ComponentModel.Container();
             this.label1 = new System.Windows.Forms.Label();
             this.text_user = new System.Windows.Forms.TextBox();
             this.label2 = new System.Windows.Forms.Label();
@@ -43,6 +44,7 @@
             this.chat_area = new System.Windows.Forms.RichTextBox();
             this.label5 = new System.Windows.Forms.Label();
             this.text_port = new System.Windows.Forms.TextBox();
+            this.UpdateText = new System.Windows.Forms.Timer(this.components);
             this.SuspendLayout();
             // 
             // label1
@@ -179,6 +181,11 @@
             this.text_port.TabIndex = 15;
             this.text_port.Text = "6667";
             // 
+            // UpdateText
+            // 
+            this.UpdateText.Enabled = true;
+            this.UpdateText.Tick += new System.EventHandler(this.UpdateText_Tick);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -223,6 +230,7 @@
         private System.Windows.Forms.Label label5;
         private System.Windows.Forms.TextBox text_port;
         private System.Windows.Forms.RichTextBox chat_area;
+        private System.Windows.Forms.Timer UpdateText;
     }
 }
 
