@@ -35,9 +35,10 @@ namespace WindowsFormsApplication1
         bool IsLineRead = true;
         Thread ReadStreamThread;
         CrazyChat Replies;
-        string votingOptions="VOTE:";
+        string votingOptions;
         int voteSize, voteTickCount=0;
         bool activeVote = false;
+        bool finishVote = false;
         //int[] votecount;
         VotingSystem Votes;
 
@@ -200,6 +201,10 @@ namespace WindowsFormsApplication1
                         }
                         IsLineRead = true;
                     }
+                    if (activeVote)
+                    {
+                        VotingTime_Tick();
+                    }
             }
         }
 
@@ -221,22 +226,26 @@ namespace WindowsFormsApplication1
                 writer.Flush();
                 chat_area.AppendText("<TestSabot> " + reply + "\r\n");
             }
-            if ((replyingUser.ToLower() == "vifs" || replyingUser.ToLower() == "theheavenator") && formatedMessage.ToLower().StartsWith("vs"))
+            if (!activeVote)
             {
-                Voting();
-            }
-            if ((replyingUser.ToLower() == "vifs" || replyingUser.ToLower() == "theheavenator") && formatedMessage.ToLower().StartsWith("end vote"))
-            {
-                activeVote = false;
+                if ((replyingUser.ToLower() == "vifs" || replyingUser.ToLower() == "theheavenator") && formatedMessage.ToLower().StartsWith("vs"))
+                {
+                    Voting();
+                }
+
             }
             if (activeVote)
             {
+                if ((replyingUser.ToLower() == "vifs" || replyingUser.ToLower() == "theheavenator") && formatedMessage.ToLower().StartsWith("end vote"))
+                {
+                    finishVote = true;
+                }
                 for (int c=1; c<=voteSize; c++)
                 {
                     if (formatedMessage.StartsWith(c.ToString()))
                     {
                         //votecount[c-1]++;
-                        Votes.AddVote(c - 1);
+                        Votes.AddVote(c, replyingUser);
                     }
                 }
             }
@@ -263,40 +272,58 @@ namespace WindowsFormsApplication1
             }
             else
             {
+                votingOptions = "VOTE:";
                 for (int c = 1; c <= tempVoteSetup.Length - 1; c++)
                 {
                     votingOptions += (" " + c + " for " + tempVoteSetup[c] + ",");
-                    Votes.AddVote(c, tempVoteSetup[c]);
+                    Votes.AddVoteItem(c, tempVoteSetup[c]);
                 }
+                voteSize = tempVoteSetup.Length-1;
                 votingOptions = votingOptions.TrimEnd(',');
                 DataSend("PRIVMSG ", channel + " :" + votingOptions);
                 chat_area.AppendText("VOTING START");
             }
 
-            VotingTime.Start();
             activeVote = true;
 
         }
 
         private void VotingTime_Tick(object sender, EventArgs e)
         {
+                voteTickCount++;
+                if (voteTickCount == 200)
+                {
+                    //DataSend("PRIVMSG ", channel + " :10 SECONDS LEFT TO VOTE");
+                    SendMessage(" :10 SECONDS LEFT TO VOTE");
+                }
+                else if (voteTickCount == 300 || activeVote == false)
+                {
+                    SendMessage(Votes.ReturnVotes());
+                    activeVote = false;
+                    voteTickCount = 0;
+                }
+        }
+
+        private void VotingTime_Tick()
+        {
             voteTickCount++;
-            if (voteTickCount == 2) 
+            if (voteTickCount == 200)
             {
                 //DataSend("PRIVMSG ", channel + " :10 SECONDS LEFT TO VOTE");
                 SendMessage(" :10 SECONDS LEFT TO VOTE");
             }
-            else if (voteTickCount==3 || activeVote == false)
+            else if (voteTickCount == 300 || finishVote)
             {
                 SendMessage(Votes.ReturnVotes());
-                VotingTime.Stop();
                 activeVote = false;
+                finishVote = false;
+                voteTickCount = 0;
             }
         }
 
         private void SendMessage(string message)
         {
-            DataSend("PRIVMSG ", channel + message);
+            DataSend("PRIVMSG ", channel + " :" + message);
         }
     }
 }

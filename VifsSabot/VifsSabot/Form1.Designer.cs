@@ -189,7 +189,7 @@
             // 
             // VotingTime
             // 
-            this.VotingTime.Interval = 10000;
+            this.VotingTime.Enabled = true;
             // 
             // Form1
             // 

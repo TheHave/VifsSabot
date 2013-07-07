@@ -8,14 +8,15 @@ namespace WindowsFormsApplication1
     class VotingSystem
     {
         public Dictionary<int, VoteInfo> Votes;
-
+        List<string> voters;
 
         public void CreateNew()
         {
             Votes = new Dictionary<int, VoteInfo>();
+            voters = new List<string>();
         }
 
-        public void AddVote(int position, string vote)
+        public void AddVoteItem(int position, string vote)
         {
             VoteInfo temp = new VoteInfo();
             temp.Counts = 0;
@@ -23,12 +24,17 @@ namespace WindowsFormsApplication1
             Votes.Add(position, temp);
         }
 
-        public void AddVote(int position)
+        public void AddVote(int position, string user)
         {
-            var tempCount = Votes[position].Counts + 1;
-            var tempVoteInfo = Votes[position];
-            tempVoteInfo.Counts = tempCount;
-            Votes[position] = tempVoteInfo;
+            if (!voters.Contains(user))
+            {
+                var tempCount = Votes[position].Counts;
+                tempCount++;
+                var tempVoteInfo = Votes[position];
+                tempVoteInfo.Counts = tempCount;
+                Votes[position] = tempVoteInfo;
+                voters.Add(user);
+            }
         }
 
         private void OrderVotes()
@@ -44,7 +50,7 @@ namespace WindowsFormsApplication1
             {
                 returnValue += item.Value.Vote + " with " + item.Value.Counts + " votes,";
             }
-            returnValue.TrimEnd(',');
+            returnValue = returnValue.TrimEnd(',');
             return returnValue;
         }
     }
