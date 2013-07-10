@@ -242,7 +242,7 @@ namespace WindowsFormsApplication1
                 }
                 for (int c=1; c<=voteSize; c++)
                 {
-                    if (formatedMessage.StartsWith(c.ToString()))
+                    if (formatedMessage.Contains(c.ToString()))
                     {
                         //votecount[c-1]++;
                         Votes.AddVote(c, replyingUser);
@@ -253,7 +253,7 @@ namespace WindowsFormsApplication1
 
         private void PingHandler()
         {
-            words = newMsg.Split(chatSeperator);
+            words = LineFromReader.Split(chatSeperator);
             if (words[0] == "PING")
             {
                 DataSend("PONG", words[1]); 
@@ -306,14 +306,15 @@ namespace WindowsFormsApplication1
 
         private void VotingTime_Tick()
         {
-            voteTickCount++;
-            if (voteTickCount == 200)
-            {
-                //DataSend("PRIVMSG ", channel + " :10 SECONDS LEFT TO VOTE");
-                SendMessage(" :10 SECONDS LEFT TO VOTE");
-            }
-            else if (voteTickCount == 300 || finishVote)
-            {
+            if(finishVote){
+            //voteTickCount++;
+            //if (voteTickCount == 200)
+            //{
+            //    //DataSend("PRIVMSG ", channel + " :10 SECONDS LEFT TO VOTE");
+            //    SendMessage(" :10 SECONDS LEFT TO VOTE");
+            //}
+            //else if (voteTickCount == 300 || finishVote)
+            //{
                 SendMessage(Votes.ReturnVotes());
                 activeVote = false;
                 finishVote = false;
