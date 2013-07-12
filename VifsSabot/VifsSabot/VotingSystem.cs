@@ -8,12 +8,13 @@ namespace WindowsFormsApplication1
     class VotingSystem
     {
         public Dictionary<int, VoteInfo> Votes;
-        List<string> voters;
+        public Dictionary<string, int> voters;
+        //List<string> voters;
 
         public void CreateNew()
         {
             Votes = new Dictionary<int, VoteInfo>();
-            voters = new List<string>();
+            voters = new Dictionary<string, int>();
         }
 
         public void AddVoteItem(int position, string vote)
@@ -26,29 +27,50 @@ namespace WindowsFormsApplication1
 
         public void AddVote(int position, string user)
         {
-            if (!voters.Contains(user))
+            if (!voters.ContainsKey(user))
             {
-                var tempCount = Votes[position].Counts;
-                tempCount++;
-                var tempVoteInfo = Votes[position];
-                tempVoteInfo.Counts = tempCount;
-                Votes[position] = tempVoteInfo;
-                voters.Add(user);
+                //var tempCount = Votes[position].Counts;
+                //tempCount++;
+                //var tempVoteInfo = Votes[position];
+                //tempVoteInfo.Counts = tempCount;
+                //Votes[position] = tempVoteInfo;
+                CountVote(position, 1);
+                voters.Add(user, position);
+            }
+            else
+            {
+                changeVote(position, user);
             }
         }
 
-        private void OrderVotes()
+        private void changeVote(int position, string user)
         {
-            Votes.OrderBy(s => s.Value.Counts);
+            int oldVote = voters[user];
+            CountVote(oldVote, -1);
+            CountVote(position, 1);
+        }
+
+        private void CountVote(int position, int addedVote)
+        {
+            var tempCount = Votes[position].Counts;
+            tempCount += addedVote;
+            var tempVoteInfo = Votes[position];
+            tempVoteInfo.Counts = tempCount;
+            Votes[position] = tempVoteInfo;
+        }
+
+        private List<VoteInfo> OrderVotes()
+        {
+            return Votes.OrderByDescending(s => s.Value.Counts).Select(o => o.Value).ToList();
         }
 
         public string ReturnVotes()
         {
-            OrderVotes();
+            var tempList = OrderVotes();
             string returnValue = "";
-            foreach (var item in Votes)
+            foreach (var item in tempList)
             {
-                returnValue += item.Value.Vote + " with " + item.Value.Counts + " votes,";
+                returnValue += item.Vote + " with " + item.Counts + " votes,";
             }
             returnValue = returnValue.TrimEnd(',');
             return returnValue;
