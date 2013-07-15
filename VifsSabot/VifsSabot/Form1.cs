@@ -30,7 +30,6 @@ namespace WindowsFormsApplication1
         bool botOnline = false;
         public string[] words;
         private BackgroundWorker bw = new BackgroundWorker();
-       // Regex nameExtractor =new Regex("!*:");
         string LineFromReader = "";
         bool IsLineRead = true;
         Thread ReadStreamThread;
@@ -41,10 +40,12 @@ namespace WindowsFormsApplication1
         bool finishVote = false;
         //int[] votecount;
         VotingSystem Votes;
+        List<string> modList;
 
         public Form1()
         {
             InitializeComponent();
+            modList = new List<string>();
             Replies = new CrazyChat();
             bw.WorkerReportsProgress = true;
             bw.WorkerSupportsCancellation = true;
@@ -195,6 +196,12 @@ namespace WindowsFormsApplication1
                         {
                             PingHandler();
                         }
+                        else if ((LineFromReader.ToLower().Contains("mode "))&&(LineFromReader.ToLower().Contains(" +o")))
+                        {
+                            string[] tempMods;
+                            tempMods = LineFromReader.Split(' ');
+                            modList.Add(tempMods[tempMods.Length-1]);
+                        }
                         else
                         {
                             chat_area.AppendText(LineFromReader + "\r\n");
@@ -228,7 +235,7 @@ namespace WindowsFormsApplication1
             }
             if (!activeVote)
             {
-                if ((replyingUser.ToLower() == "vifs" || replyingUser.ToLower() == "theheavenator") && formatedMessage.ToLower().StartsWith("vs"))
+                if ((modList.Contains(replyingUser.ToLower())) && formatedMessage.ToLower().StartsWith("vs"))
                 {
                     Voting();
                 }
@@ -236,13 +243,13 @@ namespace WindowsFormsApplication1
             }
             if (activeVote)
             {
-                if ((replyingUser.ToLower() == "vifs" || replyingUser.ToLower() == "theheavenator") && formatedMessage.ToLower().StartsWith("end vote"))
+                if ((modList.Contains(replyingUser.ToLower())) && formatedMessage.ToLower().StartsWith("end vote"))
                 {
                     finishVote = true;
                 }
                 for (int c=1; c<=voteSize; c++)
                 {
-                    if (formatedMessage.Contains(c.ToString()))
+                    if ((formatedMessage.Contains(c.ToString())&&(formatedMessage.Length==c.ToString().Length)))//something goes after this to filter messages with vote and text from false postiving
                     {
                         //votecount[c-1]++;
                         Votes.AddVote(c, replyingUser);
