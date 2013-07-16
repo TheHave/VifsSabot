@@ -12,6 +12,7 @@ using System.IO;
 using System.Collections;
 using System.Text.RegularExpressions;
 using System.Threading;
+using System.Linq;
 
 
 namespace WindowsFormsApplication1
@@ -249,7 +250,7 @@ namespace WindowsFormsApplication1
                 }
                 for (int c=1; c<=voteSize; c++)
                 {
-                    if ((formatedMessage.Contains(c.ToString())&&(formatedMessage.Length==c.ToString().Length)))//something goes after this to filter messages with vote and text from false postiving
+                    if (formatedMessage.Split(' ').Any(item=>item==c.ToString()))
                     {
                         //votecount[c-1]++;
                         Votes.AddVote(c, replyingUser);
