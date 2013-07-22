@@ -48,6 +48,7 @@ namespace WindowsFormsApplication1
             int oldVote = voters[user];
             CountVote(oldVote, -1);
             CountVote(position, 1);
+            voters[user] = position;
         }
 
         private void CountVote(int position, int addedVote)

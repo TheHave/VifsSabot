@@ -45,7 +45,6 @@
             this.label5 = new System.Windows.Forms.Label();
             this.text_port = new System.Windows.Forms.TextBox();
             this.UpdateText = new System.Windows.Forms.Timer(this.components);
-            this.VotingTime = new System.Windows.Forms.Timer(this.components);
             this.SuspendLayout();
             // 
             // label1
@@ -187,10 +186,6 @@
             this.UpdateText.Enabled = true;
             this.UpdateText.Tick += new System.EventHandler(this.UpdateText_Tick);
             // 
-            // VotingTime
-            // 
-            this.VotingTime.Enabled = true;
-            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -236,7 +231,6 @@
         private System.Windows.Forms.TextBox text_port;
         private System.Windows.Forms.RichTextBox chat_area;
         private System.Windows.Forms.Timer UpdateText;
-        public System.Windows.Forms.Timer VotingTime;
     }
 }
 
